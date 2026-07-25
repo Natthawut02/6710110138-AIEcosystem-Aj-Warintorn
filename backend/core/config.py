@@ -21,6 +21,12 @@ class Settings(BaseSettings):
     LABEL_STUDIO_URL: str = "http://localhost:8080"
     LABEL_STUDIO_API_KEY: str
 
+    # MinIO settings
+    MINIO_ENDPOINT: str = "localhost:9000"
+    MINIO_ACCESS_KEY: str = "admin"
+    MINIO_SECRET_KEY: str
+    MINIO_BUCKET: str = "my-photos"
+
     # Configure Pydantic to read from backend/.env
     model_config = SettingsConfigDict(
         env_file=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"),

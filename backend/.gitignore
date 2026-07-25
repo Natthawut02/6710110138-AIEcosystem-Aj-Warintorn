@@ -20,3 +20,8 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Log files
+logs/
+*.log
+

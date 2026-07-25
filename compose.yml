@@ -15,6 +15,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   postgres:
     image: postgres:15-alpine
@@ -27,18 +32,62 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgresql-data:/var/lib/postgresql/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   label-studio:
     image: heartexlabs/label-studio:latest
     container_name: label-studio
     restart: unless-stopped
+    environment:
+      - DJANGO_DB=default
+      - POSTGRE_NAME=ai_database
+      - POSTGRE_USER=admin
+      - POSTGRE_PASSWORD=password123
+      - POSTGRE_PORT=5432
+      - POSTGRE_HOST=postgres
     ports:
       - "8080:8080"
+    depends_on:
+      - postgres
     volumes:
       - label-studio-data:/label-studio/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: unless-stopped
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   redis-data:
-  postgres-data:
+  postgresql-data:
   label-studio-data:
+  minio-data:
