@@ -1,142 +1,171 @@
 """
 CRUD (Create, Read, Update, Delete) operations for the 'students' table.
+Supports both standalone script usage and FastAPI dependency injection (db: Session).
 """
 
+from typing import List, Optional
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 from db.database import engine, SessionLocal, Base
 from db.models import Student
-from sqlalchemy.exc import SQLAlchemyError
+from core.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 def create_students_table():
     """
     Creates the 'students' table in the PostgreSQL database if it does not exist.
     """
-    print("[CRUD] Attempting to create 'students' table...")
+    logger.info("Attempting to create 'students' table...")
     try:
         Base.metadata.create_all(bind=engine)
-        print("[CRUD] SUCCESS: 'students' table created successfully.")
+        logger.info("SUCCESS: 'students' table created successfully.")
     except SQLAlchemyError as e:
-        print(f"[CRUD] ERROR: Failed to create table: {e}")
+        logger.error(f"Failed to create table: {e}")
+        raise
     except Exception as e:
-        print(f"[CRUD] UNEXPECTED ERROR: {e}")
+        logger.critical(f"Unexpected error while creating table: {e}")
+        raise
 
-def insert_student(name: str, age: int, major: str):
-    """
-    Inserts a new student record into the 'students' table.
-    """
-    print(f"[CRUD] Attempting to insert student: name={name}, age={age}, major={major}...")
-    session = SessionLocal()
-    try:
-        new_student = Student(name=name, age=age, major=major)
-        session.add(new_student)
-        session.commit()
-        session.refresh(new_student)
-        print(f"[CRUD] SUCCESS: Inserted student - ID: {new_student.id}, Name: {new_student.name}, Age: {new_student.age}, Major: {new_student.major}")
-        return new_student.id
-    except SQLAlchemyError as e:
-        session.rollback()
-        print(f"[CRUD] ERROR: Failed to insert student: {e}")
-        return None
-    except Exception as e:
-        session.rollback()
-        print(f"[CRUD] UNEXPECTED ERROR: {e}")
-        return None
-    finally:
-        session.close()
-
-def update_student(student_id: int, **fields):
-    """
-    Updates specific fields of an existing student by their ID.
-    """
-    print(f"[CRUD] Attempting to update student ID {student_id} with fields: {fields}...")
-    session = SessionLocal()
-    try:
-        student = session.query(Student).filter(Student.id == student_id).first()
-        if not student:
-            print(f"[CRUD] WARNING: Student with ID {student_id} not found.")
-            return
-
-        before_str = f"Name: {student.name}, Age: {student.age}, Major: {student.major}"
-        
-        for key, value in fields.items():
-            if hasattr(student, key):
-                setattr(student, key, value)
-            else:
-                print(f"[CRUD] WARNING: Student model has no attribute '{key}'. Skipping.")
-
-        session.commit()
-        session.refresh(student)
-        after_str = f"Name: {student.name}, Age: {student.age}, Major: {student.major}"
-        
-        print(f"[CRUD] SUCCESS: Updated student ID {student_id}")
-        print(f"  Before: {before_str}")
-        print(f"  After : {after_str}")
-    except SQLAlchemyError as e:
-        session.rollback()
-        print(f"[CRUD] ERROR: Failed to update student: {e}")
-    except Exception as e:
-        session.rollback()
-        print(f"[CRUD] UNEXPECTED ERROR: {e}")
-    finally:
-        session.close()
-
-def delete_student(student_id: int):
-    """
-    Deletes a student record by their ID.
-    """
-    print(f"[CRUD] Attempting to delete student ID {student_id}...")
-    session = SessionLocal()
-    try:
-        student = session.query(Student).filter(Student.id == student_id).first()
-        if not student:
-            print(f"[CRUD] WARNING: Student with ID {student_id} not found.")
-            return
-
-        session.delete(student)
-        session.commit()
-        print(f"[CRUD] SUCCESS: Student ID {student_id} (Name: {student.name}) has been deleted.")
-    except SQLAlchemyError as e:
-        session.rollback()
-        print(f"[CRUD] ERROR: Failed to delete student: {e}")
-    except Exception as e:
-        session.rollback()
-        print(f"[CRUD] UNEXPECTED ERROR: {e}")
-    finally:
-        session.close()
 
 def drop_students_table():
     """
     Drops the 'students' table from the database.
     """
-    print("[CRUD] Attempting to drop 'students' table...")
+    logger.warning("Attempting to drop 'students' table...")
     try:
         Base.metadata.drop_all(bind=engine)
-        print("[CRUD] SUCCESS: 'students' table dropped successfully.")
+        logger.info("SUCCESS: 'students' table dropped successfully.")
     except SQLAlchemyError as e:
-        print(f"[CRUD] ERROR: Failed to drop table: {e}")
-    except Exception as e:
-        print(f"[CRUD] UNEXPECTED ERROR: {e}")
+        logger.error(f"Failed to drop table: {e}")
+        raise
 
-def get_all_students():
+
+def get_all_students(skip: int = 0, limit: int = 100, db: Optional[Session] = None) -> List[Student]:
     """
-    Queries and prints all records from the 'students' table.
+    Queries and returns paginated student records from the database.
     """
-    print("[CRUD] Querying all students...")
-    session = SessionLocal()
+    owns_session = False
+    if db is None:
+        db = SessionLocal()
+        owns_session = True
+
     try:
-        students = session.query(Student).all()
-        if not students:
-            print("[CRUD] No student records found in the database.")
-            return []
-        print(f"[CRUD] SUCCESS: Found {len(students)} student(s):")
-        for s in students:
-            print(f"  - ID: {s.id}, Name: {s.name}, Age: {s.age}, Major: {s.major}")
+        students = db.query(Student).offset(skip).limit(limit).all()
+        logger.debug(f"Retrieved {len(students)} student record(s) from database.")
         return students
     except SQLAlchemyError as e:
-        print(f"[CRUD] ERROR: Failed to query students: {e}")
-        return []
-    except Exception as e:
-        print(f"[CRUD] UNEXPECTED ERROR: {e}")
+        logger.error(f"Database error while querying students: {e}")
         return []
     finally:
-        session.close()
+        if owns_session:
+            db.close()
 
+
+def get_student_by_id(student_id: int, db: Optional[Session] = None) -> Optional[Student]:
+    """
+    Finds a single student by primary key ID.
+    """
+    owns_session = False
+    if db is None:
+        db = SessionLocal()
+        owns_session = True
+
+    try:
+        student = db.query(Student).filter(Student.id == student_id).first()
+        return student
+    except SQLAlchemyError as e:
+        logger.error(f"Database error while finding student ID {student_id}: {e}")
+        return None
+    finally:
+        if owns_session:
+            db.close()
+
+
+def insert_student(name: str, age: Optional[int] = None, major: Optional[str] = None, db: Optional[Session] = None) -> Optional[Student]:
+    """
+    Inserts a new student record into the 'students' table.
+    """
+    logger.info(f"Attempting to insert student: name='{name}', age={age}, major='{major}'")
+    owns_session = False
+    if db is None:
+        db = SessionLocal()
+        owns_session = True
+
+    try:
+        new_student = Student(name=name, age=age, major=major)
+        db.add(new_student)
+        db.commit()
+        db.refresh(new_student)
+        logger.info(f"SUCCESS: Inserted student ID {new_student.id} ('{new_student.name}')")
+        return new_student
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"Failed to insert student: {e}")
+        return None
+    finally:
+        if owns_session:
+            db.close()
+
+
+def update_student(student_id: int, db: Optional[Session] = None, **fields) -> Optional[Student]:
+    """
+    Updates specific fields of an existing student by their ID.
+    """
+    logger.info(f"Attempting to update student ID {student_id} with fields: {fields}")
+    owns_session = False
+    if db is None:
+        db = SessionLocal()
+        owns_session = True
+
+    try:
+        student = db.query(Student).filter(Student.id == student_id).first()
+        if not student:
+            logger.warning(f"Student with ID {student_id} not found.")
+            return None
+
+        for key, value in fields.items():
+            if hasattr(student, key) and value is not None:
+                setattr(student, key, value)
+
+        db.commit()
+        db.refresh(student)
+        logger.info(f"SUCCESS: Updated student ID {student_id}")
+        return student
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"Failed to update student ID {student_id}: {e}")
+        return None
+    finally:
+        if owns_session:
+            db.close()
+
+
+def delete_student(student_id: int, db: Optional[Session] = None) -> bool:
+    """
+    Deletes a student record by their ID.
+    """
+    logger.info(f"Attempting to delete student ID {student_id}")
+    owns_session = False
+    if db is None:
+        db = SessionLocal()
+        owns_session = True
+
+    try:
+        student = db.query(Student).filter(Student.id == student_id).first()
+        if not student:
+            logger.warning(f"Student with ID {student_id} not found.")
+            return False
+
+        db.delete(student)
+        db.commit()
+        logger.info(f"SUCCESS: Student ID {student_id} ({student.name}) deleted.")
+        return True
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(f"Failed to delete student ID {student_id}: {e}")
+        return False
+    finally:
+        if owns_session:
+            db.close()
