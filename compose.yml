@@ -86,6 +86,42 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fastapi-backend
+    restart: unless-stopped
+    environment:
+      - APP_NAME=AIEcosystem Backend
+      - DEBUG=True
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password123
+      - POSTGRES_DB=ai_database
+      - LABEL_STUDIO_URL=http://label-studio:8080
+      - LABEL_STUDIO_API_KEY=7410df45e849f8accb17ddd479a4ee52076262d0
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=admin
+      - MINIO_SECRET_KEY=password123
+      - MINIO_BUCKET=my-photos
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/logs:/app/logs
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   trainer-worker:
     build:
       context: ./workers/trainer

@@ -145,24 +145,27 @@ python utils/export_openapi.py --from-app --output-dir .
 
 ## 🚀 เริ่มต้นใช้งาน (Quick Start)
 
-### 1. รัน Infrastructure ด้วย Docker Compose
+### วิธีที่ 1: รันระบบทั้งหมดด้วย Docker Compose (แนะนำ)
+สั่ง Build และรัน Services ทั้งหมด (FastAPI, Redis, PostgreSQL, MinIO, Label Studio, Trainer Worker):
 ```powershell
-docker compose up -d
+docker compose up -d --build
 ```
 
-### 2. รัน Backend API Server
+### วิธีที่ 2: รัน Backend API Server ใน Local Development Mode
 ```powershell
+# 1. รัน Infrastructure Services
+docker compose up -d redis postgres minio label-studio
+
+# 2. รัน FastAPI Backend Server
 cd backend
 .\.venv\Scripts\python.exe -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-```
 
-### 3. รัน Background Task Worker (เปิดหน้าต่างใหม่)
-```powershell
+# 3. รัน Background Task Worker (เปิด Terminal ใหม่)
 cd backend
 .\.venv\Scripts\arq.exe worker_settings.WorkerSettings
 ```
 
-### 4. รัน Automated Test Suite ตรวจสอบทั้งระบบ
+### การทดสอบระบบ (Automated Test Suite)
 ```powershell
 cd backend
 .\.venv\Scripts\python.exe sandbox/test_api_endpoints.py

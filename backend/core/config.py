@@ -13,18 +13,18 @@ class Settings(BaseSettings):
     # PostgreSQL settings
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str = "ai_ecosystem"
+    POSTGRES_USER: str = "admin"
+    POSTGRES_PASSWORD: str = "password123"
+    POSTGRES_DB: str = "ai_database"
 
     # Label Studio settings
     LABEL_STUDIO_URL: str = "http://localhost:8080"
-    LABEL_STUDIO_API_KEY: str
+    LABEL_STUDIO_API_KEY: str = "7410df45e849f8accb17ddd479a4ee52076262d0"
 
     # MinIO settings
     MINIO_ENDPOINT: str = "localhost:9000"
     MINIO_ACCESS_KEY: str = "admin"
-    MINIO_SECRET_KEY: str
+    MINIO_SECRET_KEY: str = "password123"
     MINIO_BUCKET: str = "my-photos"
 
     # Configure Pydantic to read from backend/.env
