@@ -1,0 +1,2416 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AI Ecosystem Core Backend API",
+    "summary": "Unified RESTful API Suite for AI Data Pipelines, Storage, Database, and Worker Tasks",
+    "description": "\n# AI Ecosystem Backend Service 🚀\n\nWelcome to the **AI Ecosystem Backend API** documentation. This service serves as the core orchestration backend for the AI platform.\n\n---\n\n### 🧩 Connected Components:\n* **🐘 PostgreSQL Database**: Structured data storage and ORM model persistence.\n* **📦 MinIO Object Storage**: S3-compatible file storage with object versioning.\n* **⚡ Redis & ARQ Worker**: High-performance asynchronous background task queue.\n* **🏷️ Label Studio**: Human-in-the-loop dataset annotation and task management.\n* **📊 Centralized Logger & Diagnostics**: Live system health inspection.\n\n---\n\n### 📚 Documentation & Schema Endpoints:\n* **Interactive Swagger UI**: [`/docs`](/docs)\n* **ReDoc Interactive Documentation**: [`/redoc`](/redoc)\n* **Raw OpenAPI Specification (JSON)**: [`/openapi.json`](/openapi.json)\n    ",
+    "termsOfService": "https://example.com/terms/",
+    "contact": {
+      "name": "AI Ecosystem Development Team",
+      "url": "https://github.com/Natthawut02/6710110138-AIEcosystem-Aj-Warintorn",
+      "email": "natthawut@example.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "identifier": "MIT"
+    },
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "System Diagnostics"
+        ],
+        "summary": "Multi-Component System Health Check",
+        "description": "Evaluates the connectivity and latency across all core infrastructure components:\n- **PostgreSQL Database**: Executes a lightweight verification query (`SELECT 1`).\n- **Redis Cache & Queue**: Verifies connectivity via the ARQ Redis connection pool.\n- **MinIO Object Storage**: Performs a bucket listing check to verify S3 storage accessibility.\n- **Label Studio**: Tests HTTP connectivity against the configured Label Studio server endpoint.\n\nReturns an aggregated status summary (`healthy`, `degraded`, or `unhealthy`) alongside detailed per-component metrics.",
+        "operationId": "check_system_health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "System health evaluation completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemHealthResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error occurred during health inspection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/students": {
+      "post": {
+        "tags": [
+          "Student Management"
+        ],
+        "summary": "Create a New Student Record",
+        "description": "Persists a new student record into the PostgreSQL database.\n\n- **name**: Full student name (required, 2-100 characters).\n- **age**: Student age in years (optional, 1-120).\n- **major**: Academic major / department (optional).",
+        "operationId": "create_student_api_v1_students_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Student created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or invalid input payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Database persistence failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Student Management"
+        ],
+        "summary": "List All Students",
+        "description": "Retrieves a paginated list of student records from PostgreSQL.\nSupports offset pagination via `skip` and `limit` query parameters.",
+        "operationId": "list_students_api_v1_students_get",
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of records to skip (offset)",
+              "examples": [
+                0
+              ],
+              "default": 0,
+              "title": "Skip"
+            },
+            "description": "Number of records to skip (offset)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "description": "Maximum number of records to return",
+              "examples": [
+                20
+              ],
+              "default": 50,
+              "title": "Limit"
+            },
+            "description": "Maximum number of records to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of students retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StudentResponse"
+                  },
+                  "title": "Response 200 List Students Api V1 Students Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/students/{student_id}": {
+      "get": {
+        "tags": [
+          "Student Management"
+        ],
+        "summary": "Get Student by ID",
+        "description": "Retrieves the complete profile of a single student using their unique integer ID.\nReturns `404 Not Found` if no student exists with the provided ID.",
+        "operationId": "get_student_api_v1_students__student_id__get",
+        "parameters": [
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Primary key ID of the student to fetch",
+              "examples": [
+                1
+              ],
+              "title": "Student Id"
+            },
+            "description": "Primary key ID of the student to fetch"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Student record found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Student record not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Student Management"
+        ],
+        "summary": "Update Student Record",
+        "description": "Modifies one or more attributes of an existing student record in PostgreSQL.\nOnly fields included in the request body will be updated.",
+        "operationId": "update_student_api_v1_students__student_id__put",
+        "parameters": [
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "ID of the student to update",
+              "examples": [
+                1
+              ],
+              "title": "Student Id"
+            },
+            "description": "ID of the student to update"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Student record updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Student not found for update",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Student Management"
+        ],
+        "summary": "Delete Student Record",
+        "description": "Deletes a student record permanently from the PostgreSQL database.",
+        "operationId": "delete_student_api_v1_students__student_id__delete",
+        "parameters": [
+          {
+            "name": "student_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "ID of the student to delete",
+              "examples": [
+                1
+              ],
+              "title": "Student Id"
+            },
+            "description": "ID of the student to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Student record deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponse_dict_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Student not found for deletion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/storage/buckets": {
+      "get": {
+        "tags": [
+          "MinIO Object Storage"
+        ],
+        "summary": "List Storage Buckets",
+        "description": "Lists all accessible buckets in the MinIO instance along with their creation timestamps and versioning status.",
+        "operationId": "list_buckets_api_v1_storage_buckets_get",
+        "responses": {
+          "200": {
+            "description": "Buckets retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BucketInfo"
+                  },
+                  "type": "array",
+                  "title": "Response 200 List Buckets Api V1 Storage Buckets Get"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "S3 connection error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/storage/buckets/{bucket_name}/versioning": {
+      "post": {
+        "tags": [
+          "MinIO Object Storage"
+        ],
+        "summary": "Configure Bucket Versioning",
+        "description": "Enables or suspends S3 object versioning for the specified MinIO bucket.\nWhen versioning is enabled, modifying or re-uploading an object creates a new version ID rather than overwriting existing data.",
+        "operationId": "configure_versioning_api_v1_storage_buckets__bucket_name__versioning_post",
+        "parameters": [
+          {
+            "name": "bucket_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Target bucket name",
+              "examples": [
+                "my-photos"
+              ],
+              "title": "Bucket Name"
+            },
+            "description": "Target bucket name"
+          },
+          {
+            "name": "enable",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "True to enable versioning, False to suspend",
+              "examples": [
+                true
+              ],
+              "default": true,
+              "title": "Enable"
+            },
+            "description": "True to enable versioning, False to suspend"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bucket versioning configuration updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponse_dict_"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "MinIO error setting versioning",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/storage/upload": {
+      "post": {
+        "tags": [
+          "MinIO Object Storage"
+        ],
+        "summary": "Upload File to MinIO",
+        "description": "Uploads a binary file stream into MinIO S3 storage.\n\n- **file**: Multipart file payload.\n- **object_name**: Custom destination path inside bucket (optional, defaults to original filename).\n- **bucket_name**: Target MinIO bucket (optional, defaults to configured `my-photos` bucket).\n\nIf bucket versioning is enabled, MinIO automatically attaches a unique `version_id` to the response.",
+        "operationId": "upload_file_api_v1_storage_upload_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_file_api_v1_storage_upload_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "File uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid file or empty payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "MinIO upload failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/storage/objects": {
+      "get": {
+        "tags": [
+          "MinIO Object Storage"
+        ],
+        "summary": "List Objects in Bucket",
+        "description": "Retrieves the list of objects stored inside a MinIO bucket.\nSupports filtering by object prefix (e.g. `datasets/images/`).",
+        "operationId": "list_objects_api_v1_storage_objects_get",
+        "parameters": [
+          {
+            "name": "bucket_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Bucket to query (default: configured bucket)",
+              "examples": [
+                "my-photos"
+              ],
+              "title": "Bucket Name"
+            },
+            "description": "Bucket to query (default: configured bucket)"
+          },
+          {
+            "name": "prefix",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Object key prefix filter",
+              "examples": [
+                ""
+              ],
+              "default": "",
+              "title": "Prefix"
+            },
+            "description": "Object key prefix filter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Objects listed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ObjectInfo"
+                  },
+                  "title": "Response 200 List Objects Api V1 Storage Objects Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/storage/objects/{object_name}/versions": {
+      "get": {
+        "tags": [
+          "MinIO Object Storage"
+        ],
+        "summary": "List Object Version History",
+        "description": "Retrieves all historical version revisions for a given object key in MinIO.\nAllows inspecting all previous revisions, their sizes, timestamps, and current active status.",
+        "operationId": "list_object_versions_api_v1_storage_objects__object_name__versions_get",
+        "parameters": [
+          {
+            "name": "object_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Object name or path (e.g. sample.png)",
+              "examples": [
+                "sample.png"
+              ],
+              "title": "Object Name"
+            },
+            "description": "Object name or path (e.g. sample.png)"
+          },
+          {
+            "name": "bucket_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Target bucket name",
+              "examples": [
+                "my-photos"
+              ],
+              "title": "Bucket Name"
+            },
+            "description": "Target bucket name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Version history retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ObjectVersionInfo"
+                  },
+                  "title": "Response 200 List Object Versions Api V1 Storage Objects  Object Name  Versions Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Object not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/storage/download/{object_name}": {
+      "get": {
+        "tags": [
+          "MinIO Object Storage"
+        ],
+        "summary": "Download Object File Stream",
+        "description": "Streams an object's binary content directly from MinIO to the HTTP client.\nSupports downloading a specific historical revision by supplying the `version_id` query parameter.\nIf `version_id` is omitted, the latest version is returned.",
+        "operationId": "download_file_api_v1_storage_download__object_name__get",
+        "parameters": [
+          {
+            "name": "object_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Object key to download",
+              "examples": [
+                "sample.png"
+              ],
+              "title": "Object Name"
+            },
+            "description": "Object key to download"
+          },
+          {
+            "name": "bucket_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Bucket containing object",
+              "examples": [
+                "my-photos"
+              ],
+              "title": "Bucket Name"
+            },
+            "description": "Bucket containing object"
+          },
+          {
+            "name": "version_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional specific version ID to fetch",
+              "examples": [
+                "v1"
+              ],
+              "title": "Version Id"
+            },
+            "description": "Optional specific version ID to fetch"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File stream returned successfully",
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "application/octet-stream": {}
+            }
+          },
+          "404": {
+            "description": "Object or specified version ID not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/storage/objects/{object_name}": {
+      "delete": {
+        "tags": [
+          "MinIO Object Storage"
+        ],
+        "summary": "Delete Object or Specific Version",
+        "description": "Deletes an object or a specific version ID from MinIO.\nIf `version_id` is specified, only that particular historical revision is deleted.",
+        "operationId": "delete_object_api_v1_storage_objects__object_name__delete",
+        "parameters": [
+          {
+            "name": "object_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Object name to delete",
+              "examples": [
+                "sample.png"
+              ],
+              "title": "Object Name"
+            },
+            "description": "Object name to delete"
+          },
+          {
+            "name": "bucket_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Bucket name",
+              "examples": [
+                "my-photos"
+              ],
+              "title": "Bucket Name"
+            },
+            "description": "Bucket name"
+          },
+          {
+            "name": "version_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional specific version ID to delete",
+              "title": "Version Id"
+            },
+            "description": "Optional specific version ID to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Object deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardResponse_dict_"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "MinIO deletion error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs": {
+      "post": {
+        "tags": [
+          "Async Task & Worker Queue"
+        ],
+        "summary": "Enqueue Asynchronous Background Task",
+        "description": "Submits a computational task into the Redis-backed ARQ message queue for asynchronous processing by worker processes.\n\n- **job_name**: The registered python function name to run in the background (default: `simple_work`).\n- **args**: Positional arguments list to pass to the worker.\n- **kwargs**: Keyword arguments dictionary to pass to the worker.\n\nReturns immediately with an assigned `job_id` and initial `queued` state.",
+        "operationId": "enqueue_background_job_api_v1_jobs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Job placed on queue successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobInfo"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Redis connection or queue submission failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{job_id}": {
+      "get": {
+        "tags": [
+          "Async Task & Worker Queue"
+        ],
+        "summary": "Check Background Job Status",
+        "description": "Queries the real-time execution state of a previously dispatched background task.\nPossible status values:\n- `queued`: Waiting in queue for an available worker thread.\n- `in_progress`: Currently executing in worker process.\n- `complete`: Finished execution; `result` contains worker return value.\n- `not_found`: Job expired from Redis or does not exist.",
+        "operationId": "get_job_status_api_v1_jobs__job_id__get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique UUID of the background job",
+              "examples": [
+                "e7b1a23c4d5e6f7a8b9c0d1e2f3a4b5c"
+              ],
+              "title": "Job Id"
+            },
+            "description": "Unique UUID of the background job"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job status retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobInfo"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Redis inspection error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/labeling/projects": {
+      "get": {
+        "tags": [
+          "Label Studio Integration"
+        ],
+        "summary": "List Annotation Projects",
+        "description": "Fetches all existing labeling projects configured in Label Studio.\nReturns project metadata including total task count and completed annotation statistics.",
+        "operationId": "list_projects_api_v1_labeling_projects_get",
+        "responses": {
+          "200": {
+            "description": "Projects retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LabelStudioProject"
+                  },
+                  "type": "array",
+                  "title": "Response 200 List Projects Api V1 Labeling Projects Get"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Label Studio connection error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/labeling/projects/{project_id}/tasks": {
+      "get": {
+        "tags": [
+          "Label Studio Integration"
+        ],
+        "summary": "List Tasks in Project",
+        "description": "Retrieves all annotation tasks associated with a specific project ID in Label Studio.\nEach task contains the payload (e.g. image URLs or text) and any completed annotation labels.",
+        "operationId": "get_project_tasks_api_v1_labeling_projects__project_id__tasks_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Label Studio Project ID",
+              "examples": [
+                1
+              ],
+              "title": "Project Id"
+            },
+            "description": "Label Studio Project ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project tasks retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LabelStudioTask"
+                  },
+                  "title": "Response 200 Get Project Tasks Api V1 Labeling Projects  Project Id  Tasks Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Project ID not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Label Studio error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Label Studio Integration"
+        ],
+        "summary": "Import New Task into Project",
+        "description": "Submits a new data item (e.g. S3 image URL or dataset sample) into Label Studio for manual annotation.",
+        "operationId": "create_project_task_api_v1_labeling_projects__project_id__tasks_post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Target Label Studio Project ID",
+              "examples": [
+                1
+              ],
+              "title": "Project Id"
+            },
+            "description": "Target Label Studio Project ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaskRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Task created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabelStudioTask"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to create task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/train/enqueue": {
+      "post": {
+        "tags": [
+          "Trainer Worker"
+        ],
+        "summary": "เข้าคิวสั่งเทรนโมเดล (Token Classification)",
+        "description": "รับคำสั่งเทรนโมเดล แล้ว enqueue งานเข้าคิว ARQ ชื่อ `training_queue` โดยเฉพาะ\nเพื่อให้ Trainer Worker (container แยกที่มี GPU) เป็นตัวเดียวที่หยิบงานนี้ไปทำ\n\n- **dataset_object_name**: ชื่อไฟล์ dataset ที่ต้องอัปโหลดเข้า MinIO ไว้ล่วงหน้าแล้ว\n- **model_output_name**: ชื่อโมเดลที่จะใช้บันทึกกลับไป MinIO เมื่อเทรนเสร็จ\n- **queue_time**: ถ้าระบุ งานจะไม่เริ่มจนกว่าจะถึงเวลานี้ (ใช้ ARQ `_defer_until` เบื้องหลัง)",
+        "operationId": "enqueue_train_job_api_v1_train_enqueue_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainJobCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "เข้าคิวสำเร็จ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainJobInfo"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "เข้าคิวไม่สำเร็จ (Redis connection error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/train/{job_id}": {
+      "get": {
+        "tags": [
+          "Trainer Worker"
+        ],
+        "summary": "ตรวจสอบสถานะงานเทรน",
+        "description": "ตรวจสอบว่างานเทรนที่ enqueue ไว้อยู่ในสถานะใด (queued / in_progress / complete)",
+        "operationId": "get_train_job_status_api_v1_train__job_id__get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "System Diagnostics"
+        ],
+        "summary": "API Discovery & Welcome Root",
+        "description": "Returns high-level metadata, version information, and quick links to interactive documentation.",
+        "operationId": "root_discovery__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_upload_file_api_v1_storage_upload_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File",
+            "description": "File content to store in MinIO"
+          },
+          "object_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Object Name",
+            "description": "Custom object path/name (e.g. photos/sample.png)"
+          },
+          "bucket_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bucket Name",
+            "description": "Optional destination bucket name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_file_api_v1_storage_upload_post"
+      },
+      "BucketInfo": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Name of the storage bucket",
+            "examples": [
+              "my-photos"
+            ]
+          },
+          "creation_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creation Date",
+            "description": "Bucket creation timestamp"
+          },
+          "versioning_enabled": {
+            "type": "boolean",
+            "title": "Versioning Enabled",
+            "description": "Whether versioning is currently enabled for this bucket",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "BucketInfo",
+        "description": "Details about a MinIO storage bucket."
+      },
+      "ComponentHealth": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Name of the component",
+            "examples": [
+              "PostgreSQL",
+              "Redis",
+              "MinIO",
+              "Label Studio"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Health status (healthy, degraded, unreachable)",
+            "examples": [
+              "healthy"
+            ]
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms",
+            "description": "Roundtrip check latency in milliseconds",
+            "examples": [
+              3.45
+            ]
+          },
+          "details": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details",
+            "description": "Diagnostic metadata (e.g. version, active connections)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "status"
+        ],
+        "title": "ComponentHealth",
+        "description": "Health check status for an individual system component."
+      },
+      "CreateTaskRequest": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data",
+            "description": "Payload data for annotation (e.g. image URL or text string)",
+            "examples": [
+              {
+                "image": "http://localhost:9000/my-photos/image1.png"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "CreateTaskRequest",
+        "description": "Schema for pushing a new annotation task into Label Studio.",
+        "example": {
+          "data": {
+            "category": "Computer Vision",
+            "image": "http://localhost:9000/my-photos/image1.png",
+            "source": "MinIO S3"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success",
+            "description": "Always false for error responses",
+            "default": false
+          },
+          "error_code": {
+            "type": "string",
+            "title": "Error Code",
+            "description": "Machine-readable error code",
+            "default": "INTERNAL_SERVER_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Detailed description of the error"
+          },
+          "details": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details",
+            "description": "Additional context or validation error details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "ErrorResponse",
+        "description": "Standard error response model."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "JobCreate": {
+        "properties": {
+          "job_name": {
+            "type": "string",
+            "title": "Job Name",
+            "description": "Name of the registered worker function to execute",
+            "default": "simple_work",
+            "examples": [
+              "simple_work"
+            ]
+          },
+          "args": {
+            "items": {},
+            "type": "array",
+            "title": "Args",
+            "description": "Positional arguments passed to the worker function",
+            "examples": [
+              [
+                "Training Epoch 1",
+                100
+              ]
+            ]
+          },
+          "kwargs": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Kwargs",
+            "description": "Keyword arguments passed to the worker function",
+            "examples": [
+              {
+                "notify": true,
+                "priority": "high"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "JobCreate",
+        "description": "Schema for dispatching a new background job to ARQ / Redis queue.",
+        "example": {
+          "args": [
+            "Verify Worker Pipeline",
+            42
+          ],
+          "job_name": "simple_work",
+          "kwargs": {
+            "dataset": "cifar-10",
+            "retries": 3,
+            "task_type": "MODEL_EVALUATION"
+          }
+        }
+      },
+      "JobInfo": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "title": "Job Id",
+            "description": "Unique UUID assigned to the background job",
+            "examples": [
+              "e7b1a23c4d5e6f7a8b9c0d1e2f3a4b5c"
+            ]
+          },
+          "job_name": {
+            "type": "string",
+            "title": "Job Name",
+            "description": "Worker function executed",
+            "examples": [
+              "simple_work"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Current lifecycle state (queued, in_progress, complete, not_found)",
+            "examples": [
+              "queued"
+            ]
+          },
+          "enqueued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enqueued At",
+            "description": "Timestamp when job was placed into Redis queue"
+          },
+          "result": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result",
+            "description": "Return value or output if the job has completed"
+          },
+          "success": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Success",
+            "description": "Whether the job finished successfully without unhandled exceptions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "job_name",
+          "status"
+        ],
+        "title": "JobInfo",
+        "description": "Status and metadata of an enqueued background job."
+      },
+      "LabelStudioProject": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Unique Project ID in Label Studio",
+            "examples": [
+              1
+            ]
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "description": "Title of the project",
+            "examples": [
+              "Image Classification - AI Ecosystem"
+            ]
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description",
+            "description": "Detailed project description",
+            "examples": [
+              "Annotate bounding boxes and classes"
+            ]
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At",
+            "description": "Creation timestamp"
+          },
+          "task_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Number",
+            "description": "Total number of tasks imported in project",
+            "default": 0
+          },
+          "total_annotations_number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Annotations Number",
+            "description": "Total completed annotations",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "LabelStudioProject",
+        "description": "Information regarding a Label Studio annotation project."
+      },
+      "LabelStudioTask": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Unique task identifier in Label Studio",
+            "examples": [
+              101
+            ]
+          },
+          "project_id": {
+            "type": "integer",
+            "title": "Project Id",
+            "description": "ID of parent project",
+            "examples": [
+              1
+            ]
+          },
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data",
+            "description": "Task payload containing image URLs, text strings, or metadata to annotate",
+            "examples": [
+              {
+                "caption": "Dataset image #1",
+                "image": "http://localhost:9000/my-photos/sample.jpg"
+              }
+            ]
+          },
+          "annotations": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Annotations",
+            "description": "List of submitted annotations"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At",
+            "description": "Task creation timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "project_id",
+          "data"
+        ],
+        "title": "LabelStudioTask",
+        "description": "Information regarding a single annotation task."
+      },
+      "ObjectInfo": {
+        "properties": {
+          "bucket_name": {
+            "type": "string",
+            "title": "Bucket Name",
+            "description": "Target bucket name",
+            "examples": [
+              "my-photos"
+            ]
+          },
+          "object_name": {
+            "type": "string",
+            "title": "Object Name",
+            "description": "Object name/path inside the bucket",
+            "examples": [
+              "datasets/images/sample.jpg"
+            ]
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "description": "Object size in bytes",
+            "examples": [
+              204800
+            ]
+          },
+          "last_modified": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Modified",
+            "description": "Last modification timestamp"
+          },
+          "content_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Type",
+            "description": "MIME type of the stored object",
+            "examples": [
+              "image/jpeg"
+            ]
+          },
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Id",
+            "description": "Active version ID of the object"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bucket_name",
+          "object_name",
+          "size"
+        ],
+        "title": "ObjectInfo",
+        "description": "Metadata information for an object stored in MinIO."
+      },
+      "ObjectVersionInfo": {
+        "properties": {
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Id",
+            "description": "Unique version identifier assigned by MinIO",
+            "examples": [
+              "3e4f6a7b-1234-5678-90ab-cdef12345678"
+            ]
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "description": "Size of the object in bytes",
+            "examples": [
+              1048576
+            ]
+          },
+          "last_modified": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Modified",
+            "description": "Timestamp of when this version was created/updated"
+          },
+          "is_latest": {
+            "type": "boolean",
+            "title": "Is Latest",
+            "description": "Indicates if this is the active/latest version of the object",
+            "default": true
+          },
+          "etag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Etag",
+            "description": "ETag/MD5 checksum hash of the object"
+          }
+        },
+        "type": "object",
+        "required": [
+          "size"
+        ],
+        "title": "ObjectVersionInfo",
+        "description": "Information regarding a specific version of a MinIO object."
+      },
+      "StandardResponse_dict_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success",
+            "description": "Indicates whether the operation succeeded",
+            "default": true
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "User-friendly status message",
+            "default": "Operation completed successfully"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data",
+            "description": "Response payload data"
+          }
+        },
+        "type": "object",
+        "title": "StandardResponse[dict]"
+      },
+      "StudentCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "Name",
+            "description": "Full name of the student",
+            "examples": [
+              "Somchai Prasert"
+            ]
+          },
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 120.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age",
+            "description": "Age of the student in years",
+            "examples": [
+              21
+            ]
+          },
+          "major": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Major",
+            "description": "Field of study or academic department",
+            "examples": [
+              "Computer Engineering"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "StudentCreate",
+        "description": "Schema for creating a new student record.",
+        "example": {
+          "age": 21,
+          "major": "Computer Engineering",
+          "name": "Somchai Prasert"
+        }
+      },
+      "StudentResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "Name",
+            "description": "Full name of the student",
+            "examples": [
+              "Somchai Prasert"
+            ]
+          },
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 120.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age",
+            "description": "Age of the student in years",
+            "examples": [
+              21
+            ]
+          },
+          "major": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Major",
+            "description": "Field of study or academic department",
+            "examples": [
+              "Computer Engineering"
+            ]
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id",
+            "description": "Unique database identifier (Primary Key)",
+            "examples": [
+              1
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "id"
+        ],
+        "title": "StudentResponse",
+        "description": "Schema for student data returned from API.",
+        "example": {
+          "age": 21,
+          "id": 1,
+          "major": "Computer Engineering",
+          "name": "Somchai Prasert"
+        }
+      },
+      "StudentUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name",
+            "description": "Updated full name of the student",
+            "examples": [
+              "Somchai Prasert (Updated)"
+            ]
+          },
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 120.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age",
+            "description": "Updated age of the student",
+            "examples": [
+              22
+            ]
+          },
+          "major": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Major",
+            "description": "Updated academic department",
+            "examples": [
+              "Artificial Intelligence"
+            ]
+          }
+        },
+        "type": "object",
+        "title": "StudentUpdate",
+        "description": "Schema for updating an existing student record (all fields optional).",
+        "example": {
+          "age": 22,
+          "major": "Artificial Intelligence"
+        }
+      },
+      "SystemHealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Overall status (healthy, degraded, unhealthy)",
+            "examples": [
+              "healthy"
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp",
+            "description": "UTC timestamp of the diagnostic check"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment",
+            "description": "Deployment environment (development, staging, production)",
+            "default": "development"
+          },
+          "components": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ComponentHealth"
+            },
+            "type": "object",
+            "title": "Components",
+            "description": "Component-level health check breakdown"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "components"
+        ],
+        "title": "SystemHealthResponse",
+        "description": "Aggregated health status of the entire backend system and infrastructure components."
+      },
+      "TrainJobCreate": {
+        "properties": {
+          "dataset_object_name": {
+            "type": "string",
+            "title": "Dataset Object Name",
+            "description": "ชื่อไฟล์ dataset ที่เก็บอยู่ใน MinIO (bucket: datasets) เช่น 'conll2003/train.jsonl'",
+            "examples": [
+              "conll2003/train.jsonl"
+            ]
+          },
+          "model_output_name": {
+            "type": "string",
+            "title": "Model Output Name",
+            "description": "ชื่อโมเดลที่จะใช้ตั้งตอนบันทึกกลับไป MinIO เช่น 'token-classifier-v1'",
+            "examples": [
+              "token-classifier-v1"
+            ]
+          },
+          "epochs": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Epochs",
+            "description": "จำนวนรอบการเทรน",
+            "default": 1
+          },
+          "queue_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Queue Time",
+            "description": "เวลาที่ต้องการให้เริ่มเทรน (ISO 8601, เช่น 2026-09-01T22:00:00) ถ้าไม่ระบุ จะเริ่มเทรนทันทีที่ Trainer Worker ว่าง",
+            "examples": [
+              "2026-09-01T22:00:00"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "dataset_object_name",
+          "model_output_name"
+        ],
+        "title": "TrainJobCreate",
+        "description": "ข้อมูลที่ Client ต้องส่งมาเพื่อขอเข้าคิวเทรนโมเดล"
+      },
+      "TrainJobInfo": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "title": "Job Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "queue_name": {
+            "type": "string",
+            "title": "Queue Name"
+          },
+          "scheduled_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Start"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "status",
+          "queue_name"
+        ],
+        "title": "TrainJobInfo",
+        "description": "ข้อมูลตอบกลับหลัง enqueue งานเทรนสำเร็จ"
+      },
+      "UploadResponse": {
+        "properties": {
+          "bucket_name": {
+            "type": "string",
+            "title": "Bucket Name",
+            "description": "Target bucket name",
+            "examples": [
+              "my-photos"
+            ]
+          },
+          "object_name": {
+            "type": "string",
+            "title": "Object Name",
+            "description": "Stored object path/name",
+            "examples": [
+              "photos/profile.png"
+            ]
+          },
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Id",
+            "description": "Assigned MinIO version ID (if versioning is enabled)",
+            "examples": [
+              "v1-abc-123"
+            ]
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "description": "Uploaded file size in bytes",
+            "examples": [
+              51200
+            ]
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type",
+            "description": "Detected MIME content type",
+            "examples": [
+              "image/png"
+            ]
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "Presigned or direct access URL if applicable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bucket_name",
+          "object_name",
+          "size",
+          "content_type"
+        ],
+        "title": "UploadResponse",
+        "description": "Response returned upon successful file upload to MinIO.",
+        "example": {
+          "bucket_name": "my-photos",
+          "content_type": "image/png",
+          "object_name": "photos/profile.png",
+          "size": 51200,
+          "url": "http://localhost:9000/my-photos/photos/profile.png",
+          "version_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+        }
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "System Diagnostics",
+      "description": "Real-time health monitoring and latency diagnostics across PostgreSQL, Redis, MinIO, and Label Studio.",
+      "externalDocs": {
+        "description": "System Architecture Overview",
+        "url": "https://fastapi.tiangolo.com/advanced/custom-response/"
+      }
+    },
+    {
+      "name": "Student Management",
+      "description": "PostgreSQL database CRUD operations using SQLAlchemy ORM for student records management."
+    },
+    {
+      "name": "MinIO Object Storage",
+      "description": "S3-compatible Object Storage management supporting multi-part file uploads, object versioning, and binary streaming.",
+      "externalDocs": {
+        "description": "MinIO Python SDK Docs",
+        "url": "https://min.io/docs/minio/linux/developers/python/API.html"
+      }
+    },
+    {
+      "name": "Async Task & Worker Queue",
+      "description": "Asynchronous job scheduling and status tracking backed by Redis and ARQ worker framework.",
+      "externalDocs": {
+        "description": "ARQ Job Queue Documentation",
+        "url": "https://arq-docs.helpmanual.io/"
+      }
+    },
+    {
+      "name": "Label Studio Integration",
+      "description": "Data annotation integration for AI dataset pipelines connecting to Label Studio.",
+      "externalDocs": {
+        "description": "Label Studio API Docs",
+        "url": "https://labelstud.io/guide/api.html"
+      }
+    },
+    {
+      "name": "Trainer Worker",
+      "description": "Asynchronous model training and dedicated GPU worker queue management."
+    }
+  ]
+}

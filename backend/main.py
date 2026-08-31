@@ -25,6 +25,7 @@ from routers import (
     students_router,
     storage_router,
     jobs_router,
+    train_router,
     labeling_router
 )
 
@@ -70,6 +71,10 @@ tags_metadata = [
             "description": "Label Studio API Docs",
             "url": "https://labelstud.io/guide/api.html",
         },
+    },
+    {
+        "name": "Trainer Worker",
+        "description": "Asynchronous model training and dedicated GPU worker queue management.",
     },
 ]
 
@@ -208,6 +213,7 @@ app.include_router(students_router, prefix=API_V1_PREFIX)
 app.include_router(storage_router, prefix=API_V1_PREFIX)
 app.include_router(jobs_router, prefix=API_V1_PREFIX)
 app.include_router(labeling_router, prefix=API_V1_PREFIX)
+app.include_router(train_router, prefix=API_V1_PREFIX)
 
 
 # ==============================================================================
@@ -235,7 +241,8 @@ def root_discovery():
             "students": f"{API_V1_PREFIX}/students",
             "storage": f"{API_V1_PREFIX}/storage",
             "jobs": f"{API_V1_PREFIX}/jobs",
-            "labeling": f"{API_V1_PREFIX}/labeling"
+            "labeling": f"{API_V1_PREFIX}/labeling",
+            "train": f"{API_V1_PREFIX}/train"
         }
     }
 

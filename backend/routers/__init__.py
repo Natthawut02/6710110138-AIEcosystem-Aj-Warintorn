@@ -7,6 +7,7 @@ from routers.health import router as health_router
 from routers.students import router as students_router
 from routers.storage import router as storage_router
 from routers.jobs import router as jobs_router
+from routers.train import router as train_router
 from routers.labeling import router as labeling_router
 
 __all__ = [
@@ -14,5 +15,6 @@ __all__ = [
     "students_router",
     "storage_router",
     "jobs_router",
+    "train_router",
     "labeling_router"
 ]

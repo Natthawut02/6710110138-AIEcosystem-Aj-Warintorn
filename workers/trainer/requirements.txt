@@ -1,0 +1,7 @@
+﻿arq==0.26.1
+redis==5.0.8
+minio==7.2.9
+torch==2.4.1
+transformers==4.44.2
+datasets==2.21.0
+accelerate==0.34.2
