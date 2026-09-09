@@ -1,4 +1,4 @@
-﻿"""
+"""
 train_job.py
 -------------
 ฟังก์ชันหลักที่ Trainer Worker เรียกใช้เมื่อมีงานเข้าคิว
@@ -29,9 +29,14 @@ from transformers import (
 
 from minio_client import download_file, upload_file, ensure_bucket
 
+import mlflow
+import mlflow.transformers
+
 DATASET_BUCKET = os.getenv("DATASET_BUCKET", "datasets")
 MODEL_BUCKET = os.getenv("MODEL_BUCKET", "models")
 BASE_MODEL_NAME = os.getenv("BASE_MODEL_NAME", "distilbert-base-uncased")
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://mlflow:5000")
+MLFLOW_EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT_NAME", "token_classification")
 
 LABEL_LIST = [
     "O", "B-PER", "I-PER", "B-ORG", "I-ORG",
@@ -151,6 +156,56 @@ async def train_token_classification(
         trainer.save_model(final_model_dir)
         tokenizer.save_pretrained(final_model_dir)
 
+        # -------------------------------------------------------------
+        # MLflow Tracking & Model Registry (WTN-A08)
+        # -------------------------------------------------------------
+        mlflow_run_id = None
+        mlflow_model_uri = None
+        try:
+            logger.info(f"กำลังเชื่อมต่อไปยัง MLflow Tracking URI: {MLFLOW_TRACKING_URI} ...")
+            mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+            mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+
+            with mlflow.start_run(run_name=f"train_{job_id}") as run:
+                mlflow_run_id = run.info.run_id
+                logger.info(f"เริ่ม MLflow Run ID: {mlflow_run_id}")
+
+                # 1. บันทึก Parameters
+                mlflow.log_params({
+                    "job_id": job_id,
+                    "base_model": BASE_MODEL_NAME,
+                    "dataset_object_name": dataset_object_name,
+                    "model_output_name": model_output_name,
+                    "epochs": epochs,
+                    "batch_size": 8,
+                    "device": device,
+                })
+
+                # 2. บันทึก Metrics
+                mlflow.log_metric("training_loss", float(train_result.training_loss))
+
+                # 3. บันทึกและลงทะเบียน Model เข้า MLflow Model Registry
+                logger.info(f"กำลังบันทึกและลงทะเบียนโมเดลเข้า MLflow Model Registry ('{model_output_name}') ...")
+                mlflow.log_artifacts(final_model_dir, artifact_path="model")
+                model_uri = f"runs:/{mlflow_run_id}/model"
+                try:
+                    reg_model = mlflow.register_model(model_uri=model_uri, name=model_output_name)
+                    mlflow_model_uri = f"models:/{model_output_name}/{reg_model.version}"
+                    logger.info(f"✅ ลงทะเบียนโมเดลใน MLflow Model Registry สำเร็จ: {mlflow_model_uri}")
+                except Exception as reg_err:
+                    logger.warning(f"MLflow model registration: {reg_err}")
+                    mlflow_model_uri = model_uri
+
+                # 4. บันทึกไฟล์ Log เข้า Artifacts ของ MLflow
+                if os.path.exists(log_path):
+                    mlflow.log_artifact(log_path, artifact_path="logs")
+
+        except Exception as ml_err:
+            logger.warning(f"⚠️ คำเตือนการบันทึกข้อมูลเข้า MLflow: {ml_err}")
+
+        # -------------------------------------------------------------
+        # บันทึกไฟล์ zip ลง MinIO (ยังคงเก็บไว้เพื่อความเข้ากันได้)
+        # -------------------------------------------------------------
         archive_path = os.path.join(workdir, f"{model_output_name}.tar.gz")
         with tarfile.open(archive_path, "w:gz") as tar:
             tar.add(final_model_dir, arcname=model_output_name)
@@ -169,10 +224,12 @@ async def train_token_classification(
 
         return {
             "status": "success",
-            "model_object_name": model_object_name,
+            "model_output_name": model_output_name,
             "version_id": version_id,
             "training_loss": train_result.training_loss,
             "log_object_name": log_object_name,
+            "mlflow_run_id": mlflow_run_id,
+            "mlflow_model_uri": mlflow_model_uri,
         }
 
     except Exception as e:

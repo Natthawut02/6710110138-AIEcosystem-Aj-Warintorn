@@ -122,6 +122,35 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  mlflow:
+    build:
+      context: ./mlflow
+      dockerfile: Dockerfile
+    container_name: mlflow
+    restart: unless-stopped
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - MINIO_HOST=minio
+      - MINIO_PORT=9000
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password123
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+      - MLFLOW_S3_IGNORE_TLS=true
+      - AWS_DEFAULT_REGION=us-east-1
+      - BACKEND_STORE_URI=postgresql://admin:password123@postgres:5432/ai_database
+      - DEFAULT_ARTIFACT_ROOT=s3://mlflow/
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+      - minio
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   trainer-worker:
     build:
       context: ./workers/trainer
@@ -138,11 +167,19 @@ services:
       - MODEL_BUCKET=models
       - BASE_MODEL_NAME=distilbert-base-uncased
       - LOG_DIR=/app/logs
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MLFLOW_EXPERIMENT_NAME=token_classification
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+      - MLFLOW_S3_IGNORE_TLS=true
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password123
+      - AWS_DEFAULT_REGION=us-east-1
     volumes:
       - ./workers/trainer/logs:/app/logs
     depends_on:
       - redis
       - minio
+      - mlflow
     deploy:
       resources:
         reservations:
@@ -150,6 +187,35 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+
+  inference-worker:
+    build:
+      context: ./workers/inference
+      dockerfile: Dockerfile
+    container_name: inference-worker
+    restart: unless-stopped
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+      - MLFLOW_S3_IGNORE_TLS=true
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password123
+      - AWS_DEFAULT_REGION=us-east-1
+      - DEFAULT_MODEL_NAME=ner_model
+      - LOG_DIR=/app/logs
+    volumes:
+      - ./workers/inference/logs:/app/logs
+    depends_on:
+      - redis
+      - minio
+      - mlflow
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   redis-data:

@@ -26,7 +26,8 @@ from routers import (
     storage_router,
     jobs_router,
     train_router,
-    labeling_router
+    labeling_router,
+    predict_router
 )
 
 logger = get_logger("main")
@@ -76,6 +77,10 @@ tags_metadata = [
         "name": "Trainer Worker",
         "description": "Asynchronous model training and dedicated GPU worker queue management.",
     },
+    {
+        "name": "Inference & Prediction",
+        "description": "WTN-A08: MLflow and Inference Worker implementation for Named Entity Recognition (NER).",
+    },
 ]
 
 
@@ -100,11 +105,11 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"PostgreSQL initialization warning: {e}")
 
-    # 2. Ensure MinIO Default Bucket
+    # 2. Ensure MinIO Buckets
     try:
-        logger.info(f"Checking MinIO bucket: '{settings.MINIO_BUCKET}'...")
-        minio_service.ensure_bucket()
-        logger.info("MinIO bucket is ready.")
+        for b in [settings.MINIO_BUCKET, "datasets", "models", "mlflow"]:
+            minio_service.ensure_bucket(b)
+        logger.info("All required MinIO buckets (my-photos, datasets, models, mlflow) are ready.")
     except Exception as e:
         logger.warning(f"MinIO bucket check warning: {e}")
 
@@ -214,6 +219,9 @@ app.include_router(storage_router, prefix=API_V1_PREFIX)
 app.include_router(jobs_router, prefix=API_V1_PREFIX)
 app.include_router(labeling_router, prefix=API_V1_PREFIX)
 app.include_router(train_router, prefix=API_V1_PREFIX)
+app.include_router(predict_router, prefix=API_V1_PREFIX)
+# Also register directly at root so /predict and /inference work as specified in assignment diagram
+app.include_router(predict_router)
 
 
 # ==============================================================================

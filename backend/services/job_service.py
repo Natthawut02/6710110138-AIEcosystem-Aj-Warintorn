@@ -112,6 +112,21 @@ class JobService:
             success=success
         )
 
+    async def wait_for_job_result(
+        self,
+        job_id: str,
+        queue_name: Optional[str] = None,
+        timeout: float = 10.0,
+    ) -> Any:
+        """Wait for job to complete and return its result, or None if timeout or not ready."""
+        pool = await self.get_pool()
+        job = Job(job_id=job_id, redis=pool, _queue_name=queue_name or "arq:queue")
+        try:
+            return await job.result(timeout=timeout, poll_delay=0.1)
+        except Exception as e:
+            logger.debug(f"Job {job_id} did not finish within {timeout}s or error: {e}")
+            return None
+
     async def close(self):
         """Gracefully close Redis pool connection."""
         if self._pool is not None:

@@ -1,13 +1,8 @@
-FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
-
-RUN apt-get update && apt-get install -y \
-    python3.11 python3-pip \
-    && rm -rf /var/lib/apt/lists/*
+FROM ajnt-trainer-worker:latest
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip3 install --default-timeout=1000 --retries 10 --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir mlflow-skinny==2.16.2 boto3==1.35.24
 
 COPY . .
 
