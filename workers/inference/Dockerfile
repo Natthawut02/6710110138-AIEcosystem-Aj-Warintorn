@@ -2,7 +2,8 @@ FROM ajnt-inference-worker:latest
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir pandas
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 

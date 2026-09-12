@@ -16,6 +16,9 @@ import mlflow
 import mlflow.transformers
 from transformers import pipeline, AutoTokenizer, AutoModelForTokenClassification
 
+from opentelemetry import trace
+from telemetry import setup_telemetry, get_tracer, get_metrics
+
 LOG_DIR = os.getenv("LOG_DIR", "/app/logs")
 os.makedirs(LOG_DIR, exist_ok=True)
 logging.basicConfig(
@@ -91,6 +94,7 @@ def get_model_pipeline(model_name: Optional[str] = None, model_version: Optional
 
 async def startup(ctx: dict):
     """รันเมื่อ Inference Worker เริ่มทำงาน"""
+    setup_telemetry("inference-worker")
     logger.info("=" * 60)
     logger.info("Inference Worker กำลังเริ่มต้นทำงาน...")
     logger.info(f"MLflow Tracking URI: {MLFLOW_TRACKING_URI}")
@@ -129,54 +133,82 @@ async def predict_token_classification(
     # โหลดหรือสลับโมเดลตามที่ร้องขอ (ถ้ามี)
     pipe, model_uri = get_model_pipeline(model_name, model_version)
 
-    try:
-        raw_results = pipe(text)
-        
-        LABEL_MAP = {
-            "LABEL_0": "O",
-            "LABEL_1": "B-PER",
-            "LABEL_2": "I-PER",
-            "LABEL_3": "B-ORG",
-            "LABEL_4": "I-ORG",
-            "LABEL_5": "B-LOC",
-            "LABEL_6": "I-LOC",
-            "LABEL_7": "B-MISC",
-            "LABEL_8": "I-MISC",
-        }
+    tracer = get_tracer()
+    req_counter, dur_histogram, ent_counter = get_metrics()
 
-        # จัดรูปแบบผลลัพธ์ให้อ่านง่ายและเป็นมาตรฐาน JSON
-        entities = []
-        for item in raw_results:
-            raw_label = item.get("entity_group") or item.get("entity") or ""
-            mapped_label = LABEL_MAP.get(raw_label, raw_label)
-            if mapped_label == "O":
-                continue
-            clean_label = mapped_label.replace("B-", "").replace("I-", "")
-            entities.append({
-                "entity_group": clean_label,
-                "score": round(float(item.get("score", 0.0)), 4),
-                "word": item.get("word", "").strip(),
-                "start": int(item.get("start", 0)),
-                "end": int(item.get("end", 0)),
-            })
+    with tracer.start_as_current_span("predict_token_classification") as span:
+        span.set_attribute("job.id", str(job_id))
+        span.set_attribute("model.name", str(model_name or DEFAULT_MODEL_NAME))
+        span.set_attribute("model.uri", str(model_uri or "unknown"))
+        span.set_attribute("text.length", len(text))
 
-        latency_ms = round((time.time() - start_time) * 1000, 2)
-        logger.info(f"[{job_id}] Predict สำเร็จใน {latency_ms} ms (พบ {len(entities)} entities)")
+        try:
+            raw_results = pipe(text)
+            
+            LABEL_MAP = {
+                "LABEL_0": "O",
+                "LABEL_1": "B-PER",
+                "LABEL_2": "I-PER",
+                "LABEL_3": "B-ORG",
+                "LABEL_4": "I-ORG",
+                "LABEL_5": "B-LOC",
+                "LABEL_6": "I-LOC",
+                "LABEL_7": "B-MISC",
+                "LABEL_8": "I-MISC",
+            }
 
-        return {
-            "status": "success",
-            "job_id": job_id,
-            "text": text,
-            "entities": entities,
-            "model_uri": model_uri,
-            "latency_ms": latency_ms,
-        }
-    except Exception as e:
-        logger.exception(f"[{job_id}] Predict ล้มเหลว: {e}")
-        return {
-            "status": "error",
-            "job_id": job_id,
-            "text": text,
-            "error": str(e),
-            "model_uri": model_uri,
-        }
+            # จัดรูปแบบผลลัพธ์ให้อ่านง่ายและเป็นมาตรฐาน JSON
+            entities = []
+            for item in raw_results:
+                raw_label = item.get("entity_group") or item.get("entity") or ""
+                mapped_label = LABEL_MAP.get(raw_label, raw_label)
+                if mapped_label == "O":
+                    continue
+                clean_label = mapped_label.replace("B-", "").replace("I-", "")
+                entities.append({
+                    "entity_group": clean_label,
+                    "score": round(float(item.get("score", 0.0)), 4),
+                    "word": item.get("word", "").strip(),
+                    "start": int(item.get("start", 0)),
+                    "end": int(item.get("end", 0)),
+                })
+
+            latency_ms = round((time.time() - start_time) * 1000, 2)
+            logger.info(f"[{job_id}] Predict สำเร็จใน {latency_ms} ms (พบ {len(entities)} entities)")
+
+            # Record OpenTelemetry Metrics & Span Attributes
+            if dur_histogram:
+                dur_histogram.record(latency_ms / 1000.0, {"status": "success", "model": str(model_name or DEFAULT_MODEL_NAME)})
+            if req_counter:
+                req_counter.add(1, {"status": "success", "model": str(model_name or DEFAULT_MODEL_NAME)})
+            if ent_counter:
+                for ent in entities:
+                    ent_counter.add(1, {"entity_type": ent.get("entity_group", "unknown")})
+
+            span.set_attribute("entities.count", len(entities))
+            span.set_attribute("latency_ms", latency_ms)
+            span.set_status(trace.StatusCode.OK)
+
+            return {
+                "status": "success",
+                "job_id": job_id,
+                "text": text,
+                "entities": entities,
+                "model_uri": model_uri,
+                "latency_ms": latency_ms,
+            }
+        except Exception as e:
+            if dur_histogram:
+                dur_histogram.record((time.time() - start_time), {"status": "error", "model": str(model_name or DEFAULT_MODEL_NAME)})
+            if req_counter:
+                req_counter.add(1, {"status": "error", "model": str(model_name or DEFAULT_MODEL_NAME)})
+            span.set_status(trace.StatusCode.ERROR, str(e))
+            span.record_exception(e)
+            logger.exception(f"[{job_id}] Predict ล้มเหลว: {e}")
+            return {
+                "status": "error",
+                "job_id": job_id,
+                "text": text,
+                "error": str(e),
+                "model_uri": model_uri,
+            }

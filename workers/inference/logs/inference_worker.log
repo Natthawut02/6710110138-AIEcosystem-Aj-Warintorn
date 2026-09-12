@@ -75,3 +75,137 @@
 2026-09-09 10:31:05,339 [INFO] inference_worker: [dd7b531fe198440bac1dd9c2c12587be] ได้รับคำขอ predict: 'Barack Obama visited Google headquarters in California....'
 2026-09-09 10:31:09,014 [INFO] inference_worker: [dd7b531fe198440bac1dd9c2c12587be] Predict สำเร็จใน 3677.02 ms (พบ 4 entities)
 2026-09-09 10:31:09,021 [INFO] arq.worker:   3.73s ← dd7b531fe198440bac1dd9c2c12587be:predict_token_classification ● {'status': 'success', 'job_id': 'dd7b531fe198440bac1dd9c2c12587be', 'text': 'Ba…
+2026-09-09 11:13:41,342 [INFO] arq.worker: recording health: Sep-09 11:13:41 j_complete=3 j_failed=0 j_retried=0 j_ongoing=0 queued=0
+2026-09-10 02:32:01,745 [INFO] arq.worker: Starting worker for 1 functions: predict_token_classification
+2026-09-10 02:32:01,753 [INFO] arq.worker: redis_version=8.8.0 mem_usage=1.36M clients_connected=1 db_keys=1
+2026-09-10 02:32:01,755 [INFO] inference_worker: ============================================================
+2026-09-10 02:32:01,757 [INFO] inference_worker: Inference Worker กำลังเริ่มต้นทำงาน...
+2026-09-10 02:32:01,762 [INFO] inference_worker: MLflow Tracking URI: http://mlflow:5000
+2026-09-10 02:32:01,764 [INFO] inference_worker: Default Model Name: ner_model
+2026-09-10 02:32:01,766 [INFO] inference_worker: กำลังพยายามโหลดโมเดลจาก MLflow URI: models:/ner_model/latest (Tracking URI: http://mlflow:5000) ...
+2026-09-10 02:32:03,580 [INFO] botocore.credentials: Found credentials in environment variables.
+2026-09-10 02:32:08,005 [WARNING] urllib3.connectionpool: Connection pool is full, discarding connection: minio. Connection pool size: 10
+2026-09-10 02:32:08,962 [INFO] inference_worker: ✅ โหลดโมเดลจาก MLflow (models:/ner_model/latest) สำเร็จเรียบร้อย!
+2026-09-10 02:32:08,965 [INFO] inference_worker: Inference Worker พร้อมใช้งานกับโมเดล: models:/ner_model/latest
+2026-09-10 02:32:08,967 [INFO] inference_worker: ============================================================
+2026-09-12 06:17:03,715 [INFO] arq.worker: Starting worker for 1 functions: predict_token_classification
+2026-09-12 06:17:03,723 [INFO] arq.worker: redis_version=8.8.0 mem_usage=1.36M clients_connected=1 db_keys=1
+2026-09-12 06:17:03,727 [INFO] inference_worker: ============================================================
+2026-09-12 06:17:03,730 [INFO] inference_worker: Inference Worker กำลังเริ่มต้นทำงาน...
+2026-09-12 06:17:03,732 [INFO] inference_worker: MLflow Tracking URI: http://mlflow:5000
+2026-09-12 06:17:03,733 [INFO] inference_worker: Default Model Name: ner_model
+2026-09-12 06:17:03,734 [INFO] inference_worker: กำลังพยายามโหลดโมเดลจาก MLflow URI: models:/ner_model/latest (Tracking URI: http://mlflow:5000) ...
+2026-09-12 06:17:04,974 [INFO] botocore.credentials: Found credentials in environment variables.
+2026-09-12 06:17:09,679 [INFO] inference_worker: ✅ โหลดโมเดลจาก MLflow (models:/ner_model/latest) สำเร็จเรียบร้อย!
+2026-09-12 06:17:09,681 [INFO] inference_worker: Inference Worker พร้อมใช้งานกับโมเดล: models:/ner_model/latest
+2026-09-12 06:17:09,683 [INFO] inference_worker: ============================================================
+2026-09-12 06:25:57,589 [INFO] arq.worker: shutdown on SIGTERM ◆ 0 jobs complete ◆ 0 failed ◆ 0 retries ◆ 0 ongoing to cancel
+2026-09-12 06:25:57,698 [INFO] inference_worker: Inference Worker กำลังหยุดการทำงาน...
+2026-09-12 06:26:37,353 [INFO] arq.worker: Starting worker for 1 functions: predict_token_classification
+2026-09-12 06:26:37,478 [INFO] arq.worker: redis_version=8.8.0 mem_usage=1.48M clients_connected=2 db_keys=2
+2026-09-12 06:26:37,485 [INFO] root: OpenTelemetry initialized for 'inference-worker' -> Collector at http://otel-collector:4317
+2026-09-12 06:26:37,489 [INFO] inference_worker: ============================================================
+2026-09-12 06:26:37,491 [INFO] inference_worker: Inference Worker กำลังเริ่มต้นทำงาน...
+2026-09-12 06:26:37,496 [INFO] inference_worker: MLflow Tracking URI: http://mlflow:5000
+2026-09-12 06:26:37,502 [INFO] inference_worker: Default Model Name: ner_model
+2026-09-12 06:26:37,506 [INFO] inference_worker: กำลังพยายามโหลดโมเดลจาก MLflow URI: models:/ner_model/latest (Tracking URI: http://mlflow:5000) ...
+2026-09-12 06:26:51,763 [INFO] botocore.credentials: Found credentials in environment variables.
+2026-09-12 06:27:02,664 [INFO] inference_worker: ✅ โหลดโมเดลจาก MLflow (models:/ner_model/latest) สำเร็จเรียบร้อย!
+2026-09-12 06:27:02,672 [INFO] inference_worker: Inference Worker พร้อมใช้งานกับโมเดล: models:/ner_model/latest
+2026-09-12 06:27:02,676 [INFO] inference_worker: ============================================================
+2026-09-12 06:28:45,539 [INFO] arq.worker:   0.30s → a82a91bbd2c64f39bfb26eced7449b86:predict_token_classification(model_name='ner_model', model_version='latest', text='Apple was founded by Stev…)
+2026-09-12 06:28:45,567 [INFO] inference_worker: [a82a91bbd2c64f39bfb26eced7449b86] ได้รับคำขอ predict: 'Apple was founded by Steve Jobs and Steve Wozniak in Los Altos, California....'
+2026-09-12 06:28:53,726 [INFO] inference_worker: [a82a91bbd2c64f39bfb26eced7449b86] Predict สำเร็จใน 8157.41 ms (พบ 8 entities)
+2026-09-12 06:28:53,777 [INFO] arq.worker:   8.25s ← a82a91bbd2c64f39bfb26eced7449b86:predict_token_classification ● {'status': 'success', 'job_id': 'a82a91bbd2c64f39bfb26eced7449b86', 'text': 'Ap…
+2026-09-12 06:30:15,773 [INFO] arq.worker:   0.49s → 76109888abe84311a08b0bd07d4cc4d1:predict_token_classification(model_name='ner_model', model_version='latest', text='Google was founded by Lar…)
+2026-09-12 06:30:15,830 [INFO] inference_worker: [76109888abe84311a08b0bd07d4cc4d1] ได้รับคำขอ predict: 'Google was founded by Larry Page and Sergey Brin while they were Ph.D. students ...'
+2026-09-12 06:30:18,976 [INFO] inference_worker: [76109888abe84311a08b0bd07d4cc4d1] Predict สำเร็จใน 3151.68 ms (พบ 9 entities)
+2026-09-12 06:30:18,984 [INFO] arq.worker:   3.32s ← 76109888abe84311a08b0bd07d4cc4d1:predict_token_classification ● {'status': 'success', 'job_id': '76109888abe84311a08b0bd07d4cc4d1', 'text': 'Go…
+2026-09-12 06:30:19,493 [INFO] arq.worker:   0.34s → 220824c6709b4820851626d912835cc4:predict_token_classification(model_name='ner_model', model_version='latest', text='Elon Musk is the CEO of T…)
+2026-09-12 06:30:19,496 [INFO] inference_worker: [220824c6709b4820851626d912835cc4] ได้รับคำขอ predict: 'Elon Musk is the CEO of Tesla and SpaceX, headquartered in Texas....'
+2026-09-12 06:30:20,170 [INFO] inference_worker: [220824c6709b4820851626d912835cc4] Predict สำเร็จใน 673.92 ms (พบ 7 entities)
+2026-09-12 06:30:20,175 [INFO] arq.worker:   0.68s ← 220824c6709b4820851626d912835cc4:predict_token_classification ● {'status': 'success', 'job_id': '220824c6709b4820851626d912835cc4', 'text': 'El…
+2026-09-12 06:30:20,683 [INFO] arq.worker:   0.41s → 85d8bb2e28f34306953d0aa7d646ec8c:predict_token_classification(model_name='ner_model', model_version='latest', text='Microsoft Corporation was…)
+2026-09-12 06:30:20,686 [INFO] inference_worker: [85d8bb2e28f34306953d0aa7d646ec8c] ได้รับคำขอ predict: 'Microsoft Corporation was founded by Bill Gates and Paul Allen on April 4, 1975,...'
+2026-09-12 06:30:21,010 [INFO] inference_worker: [85d8bb2e28f34306953d0aa7d646ec8c] Predict สำเร็จใน 324.3 ms (พบ 9 entities)
+2026-09-12 06:30:21,012 [INFO] arq.worker:   0.33s ← 85d8bb2e28f34306953d0aa7d646ec8c:predict_token_classification ● {'status': 'success', 'job_id': '85d8bb2e28f34306953d0aa7d646ec8c', 'text': 'Mi…
+2026-09-12 06:30:21,188 [INFO] arq.worker:   0.08s → 91185c5c9056489ba353fa344a69f149:predict_token_classification(model_name='ner_model', model_version='latest', text='Amazon was founded by Jef…)
+2026-09-12 06:30:21,192 [INFO] inference_worker: [91185c5c9056489ba353fa344a69f149] ได้รับคำขอ predict: 'Amazon was founded by Jeff Bezos in Bellevue, Washington....'
+2026-09-12 06:30:21,382 [INFO] inference_worker: [91185c5c9056489ba353fa344a69f149] Predict สำเร็จใน 189.27 ms (พบ 5 entities)
+2026-09-12 06:30:21,383 [INFO] arq.worker:   0.20s ← 91185c5c9056489ba353fa344a69f149:predict_token_classification ● {'status': 'success', 'job_id': '91185c5c9056489ba353fa344a69f149', 'text': 'Am…
+2026-09-12 06:30:21,685 [INFO] arq.worker:   0.24s → 10a4816e8fe04958892c47265efa9a2f:predict_token_classification(model_name='ner_model', model_version='latest', text='Jensen Huang co-founded N…)
+2026-09-12 06:30:21,687 [INFO] inference_worker: [10a4816e8fe04958892c47265efa9a2f] ได้รับคำขอ predict: 'Jensen Huang co-founded Nvidia in Sunnyvale, California....'
+2026-09-12 06:30:21,800 [INFO] inference_worker: [10a4816e8fe04958892c47265efa9a2f] Predict สำเร็จใน 112.72 ms (พบ 7 entities)
+2026-09-12 06:30:21,802 [INFO] arq.worker:   0.12s ← 10a4816e8fe04958892c47265efa9a2f:predict_token_classification ● {'status': 'success', 'job_id': '10a4816e8fe04958892c47265efa9a2f', 'text': 'Je…
+2026-09-12 06:30:22,189 [INFO] arq.worker:   0.33s → 1c6938ccb0314df0b92f4610158be99d:predict_token_classification(model_name='ner_model', model_version='latest', text='OpenAI was founded in San…)
+2026-09-12 06:30:22,194 [INFO] inference_worker: [1c6938ccb0314df0b92f4610158be99d] ได้รับคำขอ predict: 'OpenAI was founded in San Francisco by Sam Altman, Greg Brockman, and Ilya Sutsk...'
+2026-09-12 06:30:22,547 [INFO] inference_worker: [1c6938ccb0314df0b92f4610158be99d] Predict สำเร็จใน 352.62 ms (พบ 10 entities)
+2026-09-12 06:30:22,549 [INFO] arq.worker:   0.36s ← 1c6938ccb0314df0b92f4610158be99d:predict_token_classification ● {'status': 'success', 'job_id': '1c6938ccb0314df0b92f4610158be99d', 'text': 'Op…
+2026-09-12 06:32:51,154 [INFO] arq.worker: shutdown on SIGTERM ◆ 7 jobs complete ◆ 0 failed ◆ 0 retries ◆ 0 ongoing to cancel
+2026-09-12 06:32:51,242 [INFO] inference_worker: Inference Worker กำลังหยุดการทำงาน...
+2026-09-12 06:33:25,080 [INFO] arq.worker: Starting worker for 1 functions: predict_token_classification
+2026-09-12 06:33:25,343 [INFO] arq.worker: redis_version=8.8.0 mem_usage=1.77M clients_connected=3 db_keys=9
+2026-09-12 06:33:25,434 [INFO] root: OpenTelemetry initialized for 'inference-worker' -> Collector at otel-collector:4317
+2026-09-12 06:33:25,443 [INFO] inference_worker: ============================================================
+2026-09-12 06:33:25,448 [INFO] inference_worker: Inference Worker กำลังเริ่มต้นทำงาน...
+2026-09-12 06:33:25,453 [INFO] inference_worker: MLflow Tracking URI: http://mlflow:5000
+2026-09-12 06:33:25,458 [INFO] inference_worker: Default Model Name: ner_model
+2026-09-12 06:33:25,463 [INFO] inference_worker: กำลังพยายามโหลดโมเดลจาก MLflow URI: models:/ner_model/latest (Tracking URI: http://mlflow:5000) ...
+2026-09-12 06:33:29,772 [INFO] botocore.credentials: Found credentials in environment variables.
+2026-09-12 06:33:43,642 [WARNING] urllib3.connectionpool: Connection pool is full, discarding connection: minio. Connection pool size: 10
+2026-09-12 06:33:49,318 [INFO] inference_worker: ✅ โหลดโมเดลจาก MLflow (models:/ner_model/latest) สำเร็จเรียบร้อย!
+2026-09-12 06:33:49,327 [INFO] inference_worker: Inference Worker พร้อมใช้งานกับโมเดล: models:/ner_model/latest
+2026-09-12 06:33:49,332 [INFO] inference_worker: ============================================================
+2026-09-12 06:34:09,892 [INFO] arq.worker:   0.07s → 11b5622fcad44ff7b1e990178d9e9efc:predict_token_classification(model_name='ner_model', model_version='latest', text='Google was founded by Lar…)
+2026-09-12 06:34:09,897 [INFO] inference_worker: [11b5622fcad44ff7b1e990178d9e9efc] ได้รับคำขอ predict: 'Google was founded by Larry Page and Sergey Brin in Mountain View, California....'
+2026-09-12 06:34:10,816 [INFO] inference_worker: [11b5622fcad44ff7b1e990178d9e9efc] Predict สำเร็จใน 919.8 ms (พบ 8 entities)
+2026-09-12 06:34:10,833 [INFO] arq.worker:   0.94s ← 11b5622fcad44ff7b1e990178d9e9efc:predict_token_classification ● {'status': 'success', 'job_id': '11b5622fcad44ff7b1e990178d9e9efc', 'text': 'Go…
+2026-09-12 06:34:11,359 [INFO] arq.worker:   0.26s → 689f056231924736b771d733eecb892f:predict_token_classification(model_name='ner_model', model_version='latest', text='Apple CEO Tim Cook announ…)
+2026-09-12 06:34:11,368 [INFO] inference_worker: [689f056231924736b771d733eecb892f] ได้รับคำขอ predict: 'Apple CEO Tim Cook announced new AI features at Cupertino headquarters....'
+2026-09-12 06:34:11,620 [INFO] inference_worker: [689f056231924736b771d733eecb892f] Predict สำเร็จใน 252.16 ms (พบ 5 entities)
+2026-09-12 06:34:11,625 [INFO] arq.worker:   0.27s ← 689f056231924736b771d733eecb892f:predict_token_classification ● {'status': 'success', 'job_id': '689f056231924736b771d733eecb892f', 'text': 'Ap…
+2026-09-12 06:34:11,849 [INFO] arq.worker:   0.12s → 1ddfcc87184241ff8206ea21215da708:predict_token_classification(model_name='ner_model', model_version='latest', text='Amazon founder Jeff Bezos…)
+2026-09-12 06:34:11,851 [INFO] inference_worker: [1ddfcc87184241ff8206ea21215da708] ได้รับคำขอ predict: 'Amazon founder Jeff Bezos traveled to Seattle, Washington for AWS summit....'
+2026-09-12 06:34:11,992 [INFO] inference_worker: [1ddfcc87184241ff8206ea21215da708] Predict สำเร็จใน 141.31 ms (พบ 7 entities)
+2026-09-12 06:34:11,997 [INFO] arq.worker:   0.15s ← 1ddfcc87184241ff8206ea21215da708:predict_token_classification ● {'status': 'success', 'job_id': '1ddfcc87184241ff8206ea21215da708', 'text': 'Am…
+2026-09-12 06:34:12,345 [INFO] arq.worker:   0.29s → e5ae94855d554ee5a691a1c773b0d87d:predict_token_classification(model_name='ner_model', model_version='latest', text='Microsoft CEO Satya Nadel…)
+2026-09-12 06:34:12,347 [INFO] inference_worker: [e5ae94855d554ee5a691a1c773b0d87d] ได้รับคำขอ predict: 'Microsoft CEO Satya Nadella visited OpenAI in San Francisco....'
+2026-09-12 06:34:12,482 [INFO] inference_worker: [e5ae94855d554ee5a691a1c773b0d87d] Predict สำเร็จใน 134.35 ms (พบ 7 entities)
+2026-09-12 06:34:12,486 [INFO] arq.worker:   0.14s ← e5ae94855d554ee5a691a1c773b0d87d:predict_token_classification ● {'status': 'success', 'job_id': 'e5ae94855d554ee5a691a1c773b0d87d', 'text': 'Mi…
+2026-09-12 06:34:12,848 [INFO] arq.worker:   0.27s → 4fda689a47154e02b3d9a09624bc22f0:predict_token_classification(model_name='ner_model', model_version='latest', text='Nvidia CEO Jensen Huang d…)
+2026-09-12 06:34:12,852 [INFO] inference_worker: [4fda689a47154e02b3d9a09624bc22f0] ได้รับคำขอ predict: 'Nvidia CEO Jensen Huang delivered the keynote speech in Santa Clara, California....'
+2026-09-12 06:34:13,318 [INFO] inference_worker: [4fda689a47154e02b3d9a09624bc22f0] Predict สำเร็จใน 466.33 ms (พบ 7 entities)
+2026-09-12 06:34:13,320 [INFO] arq.worker:   0.47s ← 4fda689a47154e02b3d9a09624bc22f0:predict_token_classification ● {'status': 'success', 'job_id': '4fda689a47154e02b3d9a09624bc22f0', 'text': 'Nv…
+2026-09-12 06:36:19,705 [INFO] arq.worker:   0.04s → 793515e473d44c549570eb2c3df8e522:predict_token_classification(model_name='ner_model', model_version='latest', text='Sundar Pichai is the CEO …)
+2026-09-12 06:36:19,777 [INFO] inference_worker: [793515e473d44c549570eb2c3df8e522] ได้รับคำขอ predict: 'Sundar Pichai is the CEO of Alphabet and Google, located in California....'
+2026-09-12 06:36:22,232 [INFO] inference_worker: [793515e473d44c549570eb2c3df8e522] Predict สำเร็จใน 2455.13 ms (พบ 5 entities)
+2026-09-12 06:36:22,239 [INFO] arq.worker:   2.54s ← 793515e473d44c549570eb2c3df8e522:predict_token_classification ● {'status': 'success', 'job_id': '793515e473d44c549570eb2c3df8e522', 'text': 'Su…
+2026-09-12 06:36:22,748 [INFO] arq.worker:   0.37s → 0c21f1a2cade40189312743c020bc368:predict_token_classification(model_name='ner_model', model_version='latest', text='Mark Zuckerberg founded F…)
+2026-09-12 06:36:22,752 [INFO] inference_worker: [0c21f1a2cade40189312743c020bc368] ได้รับคำขอ predict: 'Mark Zuckerberg founded Facebook (Meta) in Cambridge, Massachusetts....'
+2026-09-12 06:36:22,925 [INFO] inference_worker: [0c21f1a2cade40189312743c020bc368] Predict สำเร็จใน 173.34 ms (พบ 6 entities)
+2026-09-12 06:36:22,929 [INFO] arq.worker:   0.18s ← 0c21f1a2cade40189312743c020bc368:predict_token_classification ● {'status': 'success', 'job_id': '0c21f1a2cade40189312743c020bc368', 'text': 'Ma…
+2026-09-12 06:36:23,248 [INFO] arq.worker:   0.24s → a510a0f5ca4648c393863ebc43d42600:predict_token_classification(model_name='ner_model', model_version='latest', text='Satya Nadella is leading …)
+2026-09-12 06:36:23,250 [INFO] inference_worker: [a510a0f5ca4648c393863ebc43d42600] ได้รับคำขอ predict: 'Satya Nadella is leading Microsoft from Redmond, Washington....'
+2026-09-12 06:36:23,354 [INFO] inference_worker: [a510a0f5ca4648c393863ebc43d42600] Predict สำเร็จใน 104.01 ms (พบ 6 entities)
+2026-09-12 06:36:23,357 [INFO] arq.worker:   0.11s ← a510a0f5ca4648c393863ebc43d42600:predict_token_classification ● {'status': 'success', 'job_id': 'a510a0f5ca4648c393863ebc43d42600', 'text': 'Sa…
+2026-09-12 06:36:23,754 [INFO] arq.worker:   0.32s → 3c8e60bb11254e80b228e33e930c478e:predict_token_classification(model_name='ner_model', model_version='latest', text='Tim Cook presented new Ap…)
+2026-09-12 06:36:23,758 [INFO] inference_worker: [3c8e60bb11254e80b228e33e930c478e] ได้รับคำขอ predict: 'Tim Cook presented new Apple Silicon hardware at Apple Park in California....'
+2026-09-12 06:36:23,851 [INFO] inference_worker: [3c8e60bb11254e80b228e33e930c478e] Predict สำเร็จใน 93.81 ms (พบ 7 entities)
+2026-09-12 06:36:23,854 [INFO] arq.worker:   0.10s ← 3c8e60bb11254e80b228e33e930c478e:predict_token_classification ● {'status': 'success', 'job_id': '3c8e60bb11254e80b228e33e930c478e', 'text': 'Ti…
+2026-09-12 06:36:24,251 [INFO] arq.worker:   0.05s → 06e0628f626943b78b2fbd7b104ef564:predict_token_classification(model_name='ner_model', model_version='latest', text='Nvidia CEO Jensen Huang a…)
+2026-09-12 06:36:24,253 [INFO] inference_worker: [06e0628f626943b78b2fbd7b104ef564] ได้รับคำขอ predict: 'Nvidia CEO Jensen Huang announced the Blackwell GPU architecture....'
+2026-09-12 06:36:24,374 [INFO] inference_worker: [06e0628f626943b78b2fbd7b104ef564] Predict สำเร็จใน 120.39 ms (พบ 6 entities)
+2026-09-12 06:36:24,376 [INFO] arq.worker:   0.12s ← 06e0628f626943b78b2fbd7b104ef564:predict_token_classification ● {'status': 'success', 'job_id': '06e0628f626943b78b2fbd7b104ef564', 'text': 'Nv…
+2026-09-12 06:36:24,752 [INFO] arq.worker:   0.31s → e3fcbb05a5d4439889d883365204b8b0:predict_token_classification(model_name='ner_model', model_version='latest', text='OpenAI announced GPT-5 de…)
+2026-09-12 06:36:24,756 [INFO] inference_worker: [e3fcbb05a5d4439889d883365204b8b0] ได้รับคำขอ predict: 'OpenAI announced GPT-5 development in San Francisco, California....'
+2026-09-12 06:36:24,974 [INFO] inference_worker: [e3fcbb05a5d4439889d883365204b8b0] Predict สำเร็จใน 218.59 ms (พบ 7 entities)
+2026-09-12 06:36:24,977 [INFO] arq.worker:   0.23s ← e3fcbb05a5d4439889d883365204b8b0:predict_token_classification ● {'status': 'success', 'job_id': 'e3fcbb05a5d4439889d883365204b8b0', 'text': 'Op…
+2026-09-12 06:36:25,253 [INFO] arq.worker:   0.17s → 8400460a26344e41bb165209ad428f91:predict_token_classification(model_name='ner_model', model_version='latest', text='Jeff Bezos flew into spac…)
+2026-09-12 06:36:25,257 [INFO] inference_worker: [8400460a26344e41bb165209ad428f91] ได้รับคำขอ predict: 'Jeff Bezos flew into space aboard Blue Origin from Texas....'
+2026-09-12 06:36:25,381 [INFO] inference_worker: [8400460a26344e41bb165209ad428f91] Predict สำเร็จใน 124.25 ms (พบ 5 entities)
+2026-09-12 06:36:25,386 [INFO] arq.worker:   0.13s ← 8400460a26344e41bb165209ad428f91:predict_token_classification ● {'status': 'success', 'job_id': '8400460a26344e41bb165209ad428f91', 'text': 'Je…
+2026-09-12 06:36:25,756 [INFO] arq.worker:   0.25s → 8c2ab921f56f4ecab6e63c39234708a0:predict_token_classification(model_name='ner_model', model_version='latest', text='Tesla opened a new Gigafa…)
+2026-09-12 06:36:25,759 [INFO] inference_worker: [8c2ab921f56f4ecab6e63c39234708a0] ได้รับคำขอ predict: 'Tesla opened a new Gigafactory in Austin, Texas led by Elon Musk....'
+2026-09-12 06:36:25,886 [INFO] inference_worker: [8c2ab921f56f4ecab6e63c39234708a0] Predict สำเร็จใน 127.02 ms (พบ 5 entities)
+2026-09-12 06:36:25,890 [INFO] arq.worker:   0.13s ← 8c2ab921f56f4ecab6e63c39234708a0:predict_token_classification ● {'status': 'success', 'job_id': '8c2ab921f56f4ecab6e63c39234708a0', 'text': 'Te…
+2026-09-12 07:33:49,639 [INFO] arq.worker: recording health: Sep-12 07:33:49 j_complete=13 j_failed=0 j_retried=0 j_ongoing=0 queued=0
